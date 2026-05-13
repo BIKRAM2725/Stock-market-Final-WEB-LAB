@@ -9,10 +9,6 @@ suppressNotices: [
 ],
 queue: {
 concurrency: 1,
-timeout: 30000,
-},
-validation: {
-logErrors: false,
 },
 });
 /* ================= QUOTE ================= */

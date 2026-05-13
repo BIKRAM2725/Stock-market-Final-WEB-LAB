@@ -1,11 +1,14 @@
 import express from "express";
-import yahooFinance from "yahoo-finance2";
+import YahooFinance from "yahoo-finance2";
 
 const router = express.Router();
+
+const yahooFinance = new YahooFinance();
 
 /* ================= QUOTE ================= */
 
 router.get("/stock/:ticker", async (req, res) => {
+
 try {
 
 const ticker = req.params.ticker.toUpperCase();
@@ -38,7 +41,10 @@ res.json({
 
 } catch (error) {
 
-console.error("QUOTE ERROR:", error);
+console.error(
+  "QUOTE ERROR:",
+  error
+);
 
 res.status(500).json({
   error:
@@ -52,14 +58,18 @@ res.status(500).json({
 /* ================= HISTORY ================= */
 
 router.get("/history/:ticker", async (req, res) => {
+
 try {
 
 const ticker = req.params.ticker.toUpperCase();
 
-const result = await yahooFinance.chart(ticker, {
-  interval: "1d",
-  range: "1mo",
-});
+const result = await yahooFinance.chart(
+  ticker,
+  {
+    interval: "1d",
+    range: "1mo",
+  }
+);
 
 const quotes = result.quotes || [];
 
@@ -79,7 +89,10 @@ res.json({
 
 } catch (error) {
 
-console.error("HISTORY ERROR:", error);
+console.error(
+  "HISTORY ERROR:",
+  error
+);
 
 res.status(500).json({
   s: "error",

@@ -42,8 +42,12 @@ export default function StockDetails() {
   useEffect(() => {
     const load = async () => {
       try {
-        const BASE = import.meta.env.VITE_API_URL;
 
+        // API BASE URL
+        const BASE =
+          import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+        // FETCH API DATA
         const [qRes, hRes] = await Promise.all([
           fetch(`${BASE}/api/stock/${ticker}`),
           fetch(`${BASE}/api/history/${ticker}`),
@@ -54,6 +58,7 @@ export default function StockDetails() {
 
         setQuote(q);
 
+        // HISTORY DATA
         if (h.s === "ok") {
           const labels = [];
           const prices = [];
@@ -63,6 +68,7 @@ export default function StockDetails() {
 
             if (price !== null && price !== undefined) {
               const d = new Date(time * 1000);
+
               labels.push(`${d.getMonth() + 1}/${d.getDate()}`);
               prices.push(price);
             }
@@ -89,8 +95,9 @@ export default function StockDetails() {
         }
 
         setLoading(false);
+
       } catch (err) {
-        console.log(err);
+        console.log("API Error:", err);
         setLoading(false);
       }
     };
@@ -98,8 +105,39 @@ export default function StockDetails() {
     load();
   }, [ticker]);
 
-  if (loading) return <h2 style={{ textAlign: "center" }}>Loading...</h2>;
-  if (!quote) return <h2>No Data</h2>;
+  // LOADING
+  if (loading) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          background: "#f3f4f6",
+        }}
+      >
+        <h2>Loading...</h2>
+      </div>
+    );
+  }
+
+  // NO DATA
+  if (!quote) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          background: "#f3f4f6",
+        }}
+      >
+        <h2>No Data Found</h2>
+      </div>
+    );
+  }
 
   const green = quote.dp >= 0;
 
@@ -108,17 +146,19 @@ export default function StockDetails() {
       style={{
         minHeight: "100vh",
         background: "#f3f4f6",
-        padding: "20px",
-        fontFamily: "Arial",
+        padding: "clamp(12px, 3vw, 24px)",
+        fontFamily: "Arial, sans-serif",
+        boxSizing: "border-box",
       }}
     >
       <div
         style={{
           maxWidth: "1100px",
+          width: "100%",
           margin: "auto",
         }}
       >
-        {/* Header */}
+        {/* HEADER */}
         <div
           style={{
             background: "#1e293b",
@@ -129,6 +169,8 @@ export default function StockDetails() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            flexWrap: "wrap",
+            gap: "12px",
           }}
         >
           <h2 style={{ margin: 0 }}>MarketDash</h2>
@@ -142,41 +184,54 @@ export default function StockDetails() {
               padding: "8px 14px",
               borderRadius: "8px",
               cursor: "pointer",
+              fontWeight: "600",
             }}
           >
             ← Back
           </button>
         </div>
 
-        {/* Main Card */}
+        {/* MAIN CARD */}
         <div
           style={{
             background: "white",
             borderRadius: "14px",
-            padding: "20px",
+            padding: "clamp(14px, 3vw, 24px)",
             boxShadow: "0 5px 18px rgba(0,0,0,0.08)",
           }}
         >
-          <h1>{names[ticker] || ticker}</h1>
+          <h1
+            style={{
+              marginTop: 0,
+              fontSize: "clamp(1.5rem, 4vw, 2.5rem)",
+            }}
+          >
+            {names[ticker] || ticker}
+          </h1>
 
-          <h2 style={{ marginBottom: "4px" }}>
-            ${quote.c.toFixed(2)}
+          <h2
+            style={{
+              marginBottom: "4px",
+              fontSize: "clamp(1.3rem, 3vw, 2rem)",
+            }}
+          >
+            ${Number(quote.c || 0).toFixed(2)}
           </h2>
 
           <p
             style={{
-              color: green ? "green" : "red",
+              color: green ? "#16a34a" : "#dc2626",
               fontWeight: "bold",
               marginTop: 0,
             }}
           >
-            {quote.dp.toFixed(2)}%
+            {Number(quote.dp || 0).toFixed(2)}%
           </p>
 
-          {/* Graph */}
+          {/* CHART */}
           <div
             style={{
-              height: "420px",
+              height: "clamp(260px, 50vw, 420px)",
               marginTop: "20px",
               marginBottom: "20px",
             }}
@@ -188,18 +243,21 @@ export default function StockDetails() {
                   responsive: true,
                   maintainAspectRatio: false,
                   plugins: {
-                    legend: { display: true },
+                    legend: {
+                      display: true,
+                    },
                   },
                 }}
               />
             )}
           </div>
 
-          {/* Stats */}
+          {/* STATS */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
+              gridTemplateColumns:
+                "repeat(auto-fit,minmax(140px,1fr))",
               gap: "15px",
             }}
           >
@@ -217,9 +275,12 @@ export default function StockDetails() {
                   borderRadius: "10px",
                 }}
               >
-                <p style={{ margin: 0, color: "#666" }}>{label}</p>
+                <p style={{ margin: 0, color: "#666" }}>
+                  {label}
+                </p>
+
                 <h3 style={{ margin: "8px 0 0 0" }}>
-                  ${val.toFixed(2)}
+                  ${Number(val || 0).toFixed(2)}
                 </h3>
               </div>
             ))}

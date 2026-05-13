@@ -3,16 +3,9 @@ import ChatbotIcon from "./ChatbotIcon";
 
 const formatMessage = (text) => {
   return text
-    // line breaks
     .replace(/\n/g, "<br/>")
-
-    // bold (**text**)
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-
-    // headings (### Title)
     .replace(/### (.*?)(<br\/>|$)/g, "<strong>$1</strong><br/>")
-
-    // bullet points (* item)
     .replace(/\* (.*?)(<br\/>|$)/g, "• $1<br/>");
 };
 
@@ -28,6 +21,11 @@ const ChatMessage = ({ chat }) => {
 
         <p
           className="message-text"
+          style={{
+            wordBreak: "break-word",
+            overflowWrap: "break-word",
+            lineHeight: "1.5",
+          }}
           dangerouslySetInnerHTML={{
             __html: formatMessage(chat.text),
           }}

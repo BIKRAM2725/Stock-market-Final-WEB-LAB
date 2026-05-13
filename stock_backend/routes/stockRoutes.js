@@ -1,61 +1,95 @@
 import express from "express";
-import YahooFinance from "yahoo-finance2";
+import yahooFinance from "yahoo-finance2";
 
 const router = express.Router();
-const yahooFinance = new YahooFinance();
 
-/* Quote */
+/* ================= QUOTE ================= */
+
 router.get("/stock/:ticker", async (req, res) => {
-  try {
-    const ticker = req.params.ticker.toUpperCase();
-    const data = await yahooFinance.quote(ticker);
+try {
 
-    res.json({
-      symbol: data.symbol,
-      c: data.regularMarketPrice,
-      h: data.regularMarketDayHigh,
-      l: data.regularMarketDayLow,
-      o: data.regularMarketOpen,
-      pc: data.regularMarketPreviousClose,
-      dp:
-        ((data.regularMarketPrice -
-          data.regularMarketPreviousClose) /
-          data.regularMarketPreviousClose) *
-        100,
-    });
-  } catch (error) {
-    res.status(500).json({ error: "Stock fetch failed" });
-  }
+const ticker = req.params.ticker.toUpperCase();
+
+const data = await yahooFinance.quote(ticker);
+
+res.json({
+  symbol: data.symbol,
+
+  c: data.regularMarketPrice || 0,
+
+  h: data.regularMarketDayHigh || 0,
+
+  l: data.regularMarketDayLow || 0,
+
+  o: data.regularMarketOpen || 0,
+
+  pc: data.regularMarketPreviousClose || 0,
+
+  dp:
+    data.regularMarketPreviousClose
+      ? (
+          ((data.regularMarketPrice -
+            data.regularMarketPreviousClose) /
+            data.regularMarketPreviousClose) *
+          100
+        ).toFixed(2)
+      : 0,
 });
 
-/* History */
+} catch (error) {
+
+console.error("QUOTE ERROR:", error);
+
+res.status(500).json({
+  error:
+    error.message ||
+    "Stock fetch failed",
+});
+
+}
+});
+
+/* ================= HISTORY ================= */
+
 router.get("/history/:ticker", async (req, res) => {
-  try {
-    const ticker = req.params.ticker.toUpperCase();
+try {
 
-    const result = await yahooFinance.historical(ticker, {
-      period1: "2024-01-01",
-      period2: new Date(),
-      interval: "1d",
-    });
+const ticker = req.params.ticker.toUpperCase();
 
-    const filtered = result.filter((item) => item.close);
+const result = await yahooFinance.chart(ticker, {
+  interval: "1d",
+  range: "1mo",
+});
 
-    res.json({
-      s: "ok",
-      t: filtered.map((item) =>
-        Math.floor(new Date(item.date).getTime() / 1000)
-      ),
-      c: filtered.map((item) => item.close),
-    });
-  } catch (error) {
-    console.log(error.message);
+const quotes = result.quotes || [];
 
-    res.status(500).json({
-      s: "error",
-      error: "History fetch failed",
-    });
-  }
+res.json({
+  s: "ok",
+
+  t: quotes.map((item) =>
+    Math.floor(
+      new Date(item.date).getTime() / 1000
+    )
+  ),
+
+  c: quotes.map(
+    (item) => item.close || 0
+  ),
+});
+
+} catch (error) {
+
+console.error("HISTORY ERROR:", error);
+
+res.status(500).json({
+  s: "error",
+
+  error:
+    error.message ||
+    "History fetch failed",
+});
+
+}
 });
 
 export default router;
